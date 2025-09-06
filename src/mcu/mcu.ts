@@ -1,6 +1,6 @@
 import type { HID as HidDevice } from "node-hid";
 import { crc32 } from "../util/crc32";
-import { u16le, u32le, u64leNumber } from "../util/pack";
+import { u16le, u32le } from "../util/pack";
 import { deviceInit, deviceExit, listDevices, openDeviceByPath, writeOutReport, readTimeout } from "../hid/device";
 import { XREAL_VENDOR_ID, xrealMcuInterfaceId } from "../hid/ids";
 import {
@@ -149,13 +149,13 @@ export async function mcuOpen(onEvent?: (e: McuEvent) => void): Promise<OpenedMc
   writeOutReport(dev, buildPacket(DEVICE_MCU_MSG_R_BRIGHTNESS, new Uint8Array(0)));
   const b = await recvMessage(dev, DEVICE_MCU_MSG_R_BRIGHTNESS, 1);
   if (!b) throw new Error("Read brightness failed");
-  let brightness = b[0];
+  let brightness = b[0]!;
 
   // Display mode
   writeOutReport(dev, buildPacket(DEVICE_MCU_MSG_R_DISP_MODE, new Uint8Array(0)));
   const dmode = await recvMessage(dev, DEVICE_MCU_MSG_R_DISP_MODE, 1);
   if (!dmode) throw new Error("Read display mode failed");
-  let dispMode = dmode[0];
+  let dispMode = dmode[0]!;
 
   let active = false;
 
@@ -175,14 +175,14 @@ export async function mcuOpen(onEvent?: (e: McuEvent) => void): Promise<OpenedMc
         case DEVICE_MCU_MSG_P_START_HEARTBEAT:
           break;
         case DEVICE_MCU_MSG_P_DISPLAY_TOGGLED: {
-          const value = d[0];
+          const value = d[0]!;
           active = !!value;
           onEvent({ type: active ? "SCREEN_ON" : "SCREEN_OFF", timestamp, brightness });
           break;
         }
         case DEVICE_MCU_MSG_P_BUTTON_PRESSED: {
-          const virt = d[4];
-          const value = d[8];
+          const virt = d[4]!;
+          const value = d[8]!;
           // Map subset used by examples
           if (virt === 0x1) { // DISPLAY_TOGGLE
             active = !!value;
@@ -229,7 +229,7 @@ export async function mcuPollDisplayMode(mcu: OpenedMcu): Promise<number> {
   writeOutReport(mcu.device, buildPacket(DEVICE_MCU_MSG_R_DISP_MODE, new Uint8Array(0)));
   const d = await recvMessage(mcu.device, DEVICE_MCU_MSG_R_DISP_MODE, 1);
   if (!d) throw new Error("Receiving display mode failed");
-  mcu.dispMode = d[0];
+  mcu.dispMode = d[0]!;
   return mcu.dispMode;
 }
 

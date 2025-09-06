@@ -11,9 +11,9 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "rootDir": ".",
-    "types": ["bun-types", "node"]
+    "types": ["node"],
+    "noImplicitAny": true
   },
   "include": ["src", "examples"],
   "exclude": ["dist", "node_modules"]
 }
-

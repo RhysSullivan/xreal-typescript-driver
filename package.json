@@ -5,8 +5,8 @@
   "type": "module",
   "description": "TypeScript rewrite of XREAL mac driver (IMU/MCU) for Bun runtime",
   "scripts": {
-    "debug:imu": "bun run examples/debugImu.ts",
-    "debug:mcu": "bun run examples/debugMcu.ts",
+    "imu": "bun run examples/debugImu.ts",
+    "mcu": "bun run examples/debugMcu.ts",
     "typecheck": "bunx tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

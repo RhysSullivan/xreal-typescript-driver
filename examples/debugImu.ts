@@ -10,12 +10,15 @@ async function main() {
 
   console.log("Reading IMU stream. Press Ctrl+C to exit.");
   while (true) {
-    const buf = await readTimeout(imu.device as any, 1000);
+    const buf = await readTimeout(imu.device, 1000);
     if (!buf) continue;
     // Strip report ID if present
     const arr = buf[0] === 0x00 ? buf.subarray(1) : buf;
     const pkt = parseImuDataPacket(arr);
     if (!pkt) continue;
+    // wait 100ms
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    console.clear();
     console.log(`t=${(pkt.timestampNs/1e9).toFixed(3)}s gyro=(${pkt.gyroDps.x.toFixed(2)},${pkt.gyroDps.y.toFixed(2)},${pkt.gyroDps.z.toFixed(2)}) accel=(${pkt.accelG.x.toFixed(2)},${pkt.accelG.y.toFixed(2)},${pkt.accelG.z.toFixed(2)}) temp=${pkt.temperatureC.toFixed(2)}C`);
   }
 }

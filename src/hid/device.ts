@@ -40,8 +40,8 @@ export function writeOutReport(dev: HidDevice, payload: Uint8Array): number {
 export async function readTimeout(dev: HidDevice, timeoutMs: number): Promise<Uint8Array | null> {
   return new Promise((resolve) => {
     try {
-      const res = (dev as any).readTimeout?.(timeoutMs);
-      if (res && (res as any).length !== undefined) {
+      const res = dev.readTimeout?.(timeoutMs);
+      if (res && res.length !== undefined) {
         // node-hid returns number[] on some versions
         const buf = Buffer.from(res as number[]);
         resolve(normalizeInReport(buf));

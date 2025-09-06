@@ -69,11 +69,11 @@ const CRC32_TABLE = new Uint32Array([
 
 export function crc32(buf: ArrayBufferView | ArrayBuffer, len?: number): number {
   const view = buf instanceof ArrayBuffer ? new Uint8Array(buf) : new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-  const n = len ?? view.length;
+  const n = Math.max(0, Math.min(len ?? view.length, view.length));
   let crc = 0xFFFFFFFF >>> 0;
   for (let i = 0; i < n; i++) {
-    const t = (crc ^ view[i]) & 0xff;
-    crc = ((crc >>> 8) ^ CRC32_TABLE[t]) >>> 0;
+    const t = (crc ^ view[i]!) & 0xff;
+    crc = ((crc >>> 8) ^ CRC32_TABLE[t]!) >>> 0;
   }
   return (~crc) >>> 0;
 }
