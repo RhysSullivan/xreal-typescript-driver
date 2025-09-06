@@ -22,10 +22,8 @@ export function openDeviceByPath(path: string): HidDevice {
 
 export function normalizeInReport(buffer: Buffer | Uint8Array): Uint8Array {
   const arr = buffer instanceof Buffer ? new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) : buffer;
-  // On some platforms a leading reportId 0x00 is included. If present and length=65, drop it.
-  if (arr.length >= 65 && arr[0] === 0x00) {
-    return arr.subarray(1);
-  }
+  // Many HID stacks include a leading reportId 0x00 byte. Drop it when present.
+  if (arr.length >= 2 && arr[0] === 0x00) return arr.subarray(1);
   return arr;
 }
 
@@ -40,12 +38,15 @@ export function writeOutReport(dev: HidDevice, payload: Uint8Array): number {
 export async function readTimeout(dev: HidDevice, timeoutMs: number): Promise<Uint8Array | null> {
   return new Promise((resolve) => {
     try {
-      const res = dev.readTimeout?.(timeoutMs);
-      if (res && res.length !== undefined) {
-        // node-hid returns number[] on some versions
-        const buf = Buffer.from(res as number[]);
-        resolve(normalizeInReport(buf));
-        return;
+      const hasEventReaders = dev.listenerCount("data") > 0;
+      const canUseSyncRead =  !hasEventReaders;
+      if (canUseSyncRead) {
+        const res = dev.readTimeout(timeoutMs);
+        if (res && res.length !== undefined) {
+          const buf = Buffer.from(res as number[]);
+          resolve(normalizeInReport(buf));
+          return;
+        }
       }
       // Fallback to event-based read with a timer
       let timer: any;

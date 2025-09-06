@@ -75,17 +75,23 @@ function buildPacket(msgid: number, data: Uint8Array): Uint8Array {
 }
 
 async function recvMessage(dev: HidDevice, expectedMsgId: number, expectedDataLength: number): Promise<Uint8Array | null> {
-  const buf = await readTimeout(dev, 1000);
-  if (!buf) return null;
-  const view = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-  if (view[0] !== PACKET_HEAD) return null;
-  const msgid = u16le(view, 1 + 4 + 2 + 8); // head(1)+checksum(4)+length(2)+timestamp(8)
-  if (msgid !== expectedMsgId) return null;
-  const dataStart = 1 + 4 + 2 + 8 + 2 + 5; // after head, checksum, length, timestamp, msgid, reserved
-  const status = view[dataStart];
-  if (status !== 0) return null;
-  const data = view.subarray(dataStart + 1, dataStart + 1 + expectedDataLength);
-  return data.length === expectedDataLength ? data : null;
+  const deadline = Date.now() + 1000;
+  while (Date.now() < deadline) {
+    const remaining = Math.max(0, deadline - Date.now());
+    const buf = await readTimeout(dev, remaining);
+    if (!buf) continue;
+    const view = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    if (view.length < MAX_PACKET_SIZE) continue;
+    if (view[0] !== PACKET_HEAD) continue;
+    const msgid = u16le(view, 1 + 4 + 2 + 8); // head(1)+checksum(4)+length(2)+timestamp(8)
+    if (msgid !== expectedMsgId) continue;
+    const dataStart = 1 + 4 + 2 + 8 + 2 + 5; // after head, checksum, length, timestamp, msgid, reserved
+    const status = view[dataStart];
+    if (status !== 0) continue;
+    const data = view.subarray(dataStart + 1, dataStart + 1 + expectedDataLength);
+    if (data.length === expectedDataLength) return data;
+  }
+  return null;
 }
 
 export async function mcuOpen(onEvent?: (e: McuEvent) => void): Promise<OpenedMcu> {

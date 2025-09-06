@@ -1,0 +1,9 @@
+---
+description: Never use the `any` type.
+globs:
+alwaysApply: true
+---
+
+Never use the typescript `any` type.
+
+Try to use the more specific type instead & respect typescript's type inference.
