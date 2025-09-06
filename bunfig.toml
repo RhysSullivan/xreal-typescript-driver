@@ -1,0 +1,8 @@
+logLevel = "info"
+
+[test]
+root = "."
+
+tsconfig = "tsconfig.json"
+
+
